@@ -21,7 +21,7 @@ var shared =
 
 	square: {positionBuffer: null, colorBuffer: null, triangleCount: 0},
 
-	paused: false
+	paused: true
 };
 
 
@@ -69,8 +69,23 @@ function initializeScene()
 
 function createSquare()
 {
-	var positions = [-20,0,-20, -20,0,20, 20,0,-20, -20,0,20, 20,0,20, 20,0,-20];
-	var colors = [0,0,1,1, 0,0,1,1, 0,0,1,1, 0,0,1,1, 0,0,1,1, 0,0,1,1];
+	var positions = [-30,0,-20, -30,0,20, 30,0,-20,
+		 	-30,0,20, 30,0,20, 30,0,-20,
+		  -10,3,-7, -10,3,7, 10,3,-7,
+			-10,3,7, 10,3,7, 10,3,-7,
+		 	-10,3,-7, 10,12,-7, 10,3,-7,
+			-10,3,-7, -10,12,-7, 10,12,-7,
+			-10,3,-7, 10,12,-7, 10,3,-7,
+			-10,3,-7, -10,12,-7, 10,12,-7];
+
+	var colors = [255,0,1,1, 255,0,1,1, 255,0,1,1,
+		255,0,1,1, 255,0,1,1, 255,0,1,1,
+		0,0,1,1, 0,0,1,1, 0,0,1,1,
+		0,0,1,1, 0,0,1,1, 0,0,1,1,
+		0,0,1,1, 0,0,1,1, 0,0,1,1,
+		0,0,1,1, 0,0,1,1, 0,0,1,1,
+		0,0,1,1, 0,0,1,1, 0,0,1,1,
+		0,0,1,1, 0,0,1,1, 0,0,1,1,];
 
 	shared.square.positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, shared.square.positionBuffer);
@@ -100,7 +115,7 @@ function frameCallback(time)
 
 function keydown(event)
 {
-	if (event.key == "p")
+	if (event.key == "r")
 		shared.paused = !shared.paused;
 }
 
