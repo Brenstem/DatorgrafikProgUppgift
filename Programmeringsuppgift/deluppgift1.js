@@ -20,8 +20,11 @@ var shared =
 	cameraPosition: vec3.create(),
 
 	square: {positionBuffer: null, colorBuffer: null, triangleCount: 0},
+	house: {positionBuffer: null, colorBuffer: null, triangleCount: 0},
 
-	paused: true
+	paused: false,
+	cull: false,
+	depth: false
 };
 
 
@@ -63,29 +66,66 @@ function main(context)
 function initializeScene()
 {
 	createSquare();
+	createHouse();
 }
 
+function createHouse()
+{
+	var positions = [ -15,10,-10, 15,10,-10,-15,10,10 //1
+		, -15,10,10, 15,10,-10, 15,10,10 //2
+		, -15,10,10, 15,10,10, 15,25,10 //3
+		, -15,10,10, 15,25,10, -15,25,10 //4
+		, 15,10,-10, -15,10,-10, -15,25,-10 //5
+		, 15,10,-10, -15,25,-10, 15,25,-10 //6
+		, 15,10,-10, 15,25,-10, 15,10,10 //7
+		, 15,10,10, 15,25,-10, 15,25,10 //8
+		, -15,10,10, -15,25,-10, -15,10,-10 //9
+		, -15,10,10, -15,25,10, -15,25,-10 //10
+		, 15,25,-10, -15,25,-10, 15,35,0 //11
+		, -15,25,-10, -15,35,0, 15,35,0 //12
+		, -15,25,10, 15,25,10, 15,35,0 //13
+		, -15,25,10, 15,35,0, -15,35,0 //14
+		, -15,25,-10, -15,25,10, -15,35,0 // 15
+		, 15,25,10, 15,25,-10, 15,35,0 // 15
+									];
+	var colors = [ 0,1,0,1, 0,1,0,1, 0,1,0,1 //1
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //2
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //3
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //4
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //5
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //6
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //7
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //8
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //9
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //10
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //11
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //12
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //13
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //14
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //15
+		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //16
+							];
 
+	shared.house.positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.house.positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+	shared.house.colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.house.colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+	shared.house.triangleCount = positions.length / 3;
+}
 
 function createSquare()
 {
-	var positions = [-30,0,-20, -30,0,20, 30,0,-20,
-		 	-30,0,20, 30,0,20, 30,0,-20,
-		  -10,3,-7, -10,3,7, 10,3,-7,
-			-10,3,7, 10,3,7, 10,3,-7,
-		 	-10,3,-7, 10,12,-7, 10,3,-7,
-			-10,3,-7, -10,12,-7, 10,12,-7,
-			-10,3,-7, 10,12,-7, 10,3,-7,
-			-10,3,-7, -10,12,-7, 10,12,-7];
+	var positions = [-20,0,-20, -20,0,20, 20,0,-20 //1
+									, -20,0,20, 20,0,20, 20,0,-20 //2
+									];
+	var colors = [0,0,1,1, 0,0,1,1, 0,0,1,1, //1
+		 						0,0,1,1, 0,0,1,1, 0,0,1,1 //2
 
-	var colors = [255,0,1,1, 255,0,1,1, 255,0,1,1,
-		255,0,1,1, 255,0,1,1, 255,0,1,1,
-		0,0,1,1, 0,0,1,1, 0,0,1,1,
-		0,0,1,1, 0,0,1,1, 0,0,1,1,
-		0,0,1,1, 0,0,1,1, 0,0,1,1,
-		0,0,1,1, 0,0,1,1, 0,0,1,1,
-		0,0,1,1, 0,0,1,1, 0,0,1,1,
-		0,0,1,1, 0,0,1,1, 0,0,1,1,];
+							];
 
 	shared.square.positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, shared.square.positionBuffer);
@@ -115,8 +155,30 @@ function frameCallback(time)
 
 function keydown(event)
 {
-	if (event.key == "r")
+	if (event.key == " ")
 		shared.paused = !shared.paused;
+
+	if (event.key == "c"){
+      if(shared.cull == false){
+          gl.enable(gl.CULL_FACE);
+          shared.cull = true;
+      }
+      else{
+          gl.disable(gl.CULL_FACE);
+          shared.cull = false;
+      }
+  	}
+		if (event.key == "z") {
+			if(shared.depth == false){
+          gl.enable(gl.DEPTH_TEST);
+          shared.depth = true;
+      }
+      else{
+          gl.enable(gl.DEPTH_TEST);
+          shared.depth = false;
+      }
+
+		}
 }
 
 
@@ -158,6 +220,7 @@ function drawScene(time)
 
 	setWorldViewProjection();
 	drawSquare();
+	drawHouse();
 }
 
 
@@ -171,6 +234,17 @@ function drawSquare()
 	gl.vertexAttribPointer(shared.vertexColorLocation, 4, gl.FLOAT, gl.FALSE, 0, 0);
 
 	gl.drawArrays(gl.TRIANGLES, 0, shared.square.triangleCount);
+}
+
+function drawHouse()
+{
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.house.positionBuffer);
+	gl.vertexAttribPointer(shared.vertexPositionLocation, 3, gl.FLOAT, gl.FALSE, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.house.colorBuffer);
+	gl.vertexAttribPointer(shared.vertexColorLocation, 4, gl.FLOAT, gl.FALSE, 0, 0);
+
+	gl.drawArrays(gl.TRIANGLES, 0, shared.house.triangleCount);
 }
 
 
