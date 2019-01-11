@@ -21,10 +21,14 @@ var shared =
 
 	square: {positionBuffer: null, colorBuffer: null, triangleCount: 0},
 	house: {positionBuffer: null, colorBuffer: null, triangleCount: 0},
+	houseTwo: {positionBuffer: null, colorBuffer: null, indexBuffer: null, indexCount: 0},
+	planeOne: {positionBuffer: null, colorBuffer: null, indexBuffer: null, indexCount: 0},
+	planeTwo: {positionBuffer: null, colorBuffer: null, indexBuffer: null, indexCount: 0},
 
 	paused: false,
 	cull: false,
-	depth: false
+	depth: false,
+	add: false
 };
 
 
@@ -32,7 +36,6 @@ var shared =
 function main(context)
 {
 	gl = context;
-
 
 	window.addEventListener("keydown", keydown);
 	gl.canvas.addEventListener("mousemove", mousemove);
@@ -55,8 +58,9 @@ function main(context)
 	var aspectRatio = gl.drawingBufferWidth / gl.drawingBufferHeight;
 	mat4.perspective(shared.projectionMatrix, Math.PI/4, aspectRatio, 1, 150);
 
-	initializeScene();
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+	initializeScene();
 
 	window.requestAnimationFrame(frameCallback);
 }
@@ -67,43 +71,125 @@ function initializeScene()
 {
 	createSquare();
 	createHouse();
+	createHouseTwo();
+	createPlaneOne();
+	createPlaneTwo();
 }
 
-function createHouse()
-{
-	var positions = [ -15,10,-10, 15,10,-10,-15,10,10 //1
-		, -15,10,10, 15,10,-10, 15,10,10 //2
-		, -15,10,10, 15,10,10, 15,25,10 //3
-		, -15,10,10, 15,25,10, -15,25,10 //4
-		, 15,10,-10, -15,10,-10, -15,25,-10 //5
-		, 15,10,-10, -15,25,-10, 15,25,-10 //6
-		, 15,10,-10, 15,25,-10, 15,10,10 //7
-		, 15,10,10, 15,25,-10, 15,25,10 //8
-		, -15,10,10, -15,25,-10, -15,10,-10 //9
-		, -15,10,10, -15,25,10, -15,25,-10 //10
-		, 15,25,-10, -15,25,-10, 15,35,0 //11
-		, -15,25,-10, -15,35,0, 15,35,0 //12
-		, -15,25,10, 15,25,10, 15,35,0 //13
-		, -15,25,10, 15,35,0, -15,35,0 //14
-		, -15,25,-10, -15,25,10, -15,35,0 // 15
-		, 15,25,10, 15,25,-10, 15,35,0 // 15
+function createPlaneOne(){
+	var positions = [10,0,20 // 0
+		, -10,0,20 // 1
+		, 10,30,20 // 2
+		, -10,30,20 // 3
+		, 10,15,20 // 4
+		, -10,15,20 // 5
+];
+
+	var indexes = [ 0,4,1
+		, 1,4,5
+		, 4,2,5
+		, 5,2,3
+
+];
+
+	var colors = [
+		1,0,0,1,
+		1,0,0,1,
+		1,0,0,0,
+		1,0,0,0,
+		1,0,0,0.5,
+		1,0,0,0.5
+];
+
+	shared.planeOne.positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.planeOne.positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+	shared.planeOne.colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.planeOne.colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+	shared.planeOne.indexBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shared.planeOne.indexBuffer);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexes), gl.STATIC_DRAW);
+
+	shared.planeOne.indexCount = indexes.length;
+}
+
+function createPlaneTwo(){
+	var positions = [10,0,-20 // 0
+		, -10,0,-20 // 1
+		, 10,30,-20 // 2
+		, -10,30,-20 // 3
+		, 10,15,-20 // 4
+		, -10,15,-20 // 5
+];
+
+	var indexes = [  0,1,4
+		, 1,5,4
+		, 4,5,2
+		, 5,3,2
+];
+
+	var colors = [
+		1,0,1,1,
+		1,0,1,1,
+		1,0,1,0,
+		1,0,1,0,
+		1,0,1,0.5,
+		1,0,1,0.5
+];
+
+	shared.planeTwo.positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.planeTwo.positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+	shared.planeTwo.colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.planeTwo.colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+	shared.planeTwo.indexBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shared.planeTwo.indexBuffer);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexes), gl.STATIC_DRAW);
+
+	shared.planeTwo.indexCount = indexes.length;
+}
+
+function createHouse(){
+	var positions = [ -10,10,-5, 10,10,-5,-10,10,5 //1
+		, -10,10,5, 10,10,-5, 10,10,5 //2
+		, -10,10,5, 10,10,5, 10,15,5 //3
+		, -10,10,5, 10,15,5, -10,15,5 //4
+		, 10,10,-5, -10,10,-5, -10,15,-5 //5
+		, 10,10,-5, -10,15,-5, 10,15,-5 //6
+		, 10,10,-5, 10,15,-5, 10,10,5 //7
+		, 10,10,5, 10,15,-5, 10,15,5 //8
+		, -10,10,5, -10,15,-5, -10,10,-5 //9
+		, -10,10,5, -10,15,5, -10,15,-5 //10
+		, 10,15,-5, -10,15,-5, 10,20,0 //11
+		, -10,15,-5, -10,20,0, 10,20,0 //12c
+		, -10,15,5, 10,15,5, 10,20,0 //13
+		, -10,15,5, 10,20,0, -10,20,0 //14
+		, -10,15,-5, -10,15,5, -10,20,0 // 15
+		, 10,15,5, 10,15,-5, 10,20,0 // 16
 									];
-	var colors = [ 0,1,0,1, 0,1,0,1, 0,1,0,1 //1
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //2
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //3
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //4
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //5
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //6
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //7
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //8
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //9
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //10
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //11
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //12
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //13
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //14
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //15
-		, 0,1,0,1, 0,1,0,1, 0,1,0,1 //16
+
+	var colors = [ 0,1,0,1, 1,0,1,1, 0,0,1,1 //1
+		, 0,0,1,1, 1,0,1,1, 1,0,0,1 //2
+		, 0,0,1,1, 1,0,0,1, 1,1,1,1 //3
+		, 0,0,1,1, 1,1,1,1, 0,1,1,1 //4
+		, 1,0,1,1, 0,1,0,1, 1,1,0,1 //5
+		, 1,0,1,1, 1,1,0,1, 0,5,1,1 //6
+		, 1,0,1,1, 0,5,1,1, 1,0,0,1 //7
+		, 1,0,0,1, 0,5,1,1, 1,1,1,1 //8
+		, 0,0,1,1, 1,1,0,1, 0,1,0,1 //9
+		, 0,0,1,1, 0,1,1,1, 1,1,0,1 //10
+		, 0,5,1,1, 1,1,0,1, 5,0,3,1 //11
+		, 1,1,0,1, 0,1,0,1, 5,0,3,1 //12
+		, 0,1,1,1, 1,1,1,1, 5,0,3,1 //13
+		, 0,1,1,1, 5,0,3,1, 0,1,0,1 //14
+		, 1,1,0,1, 0,1,1,1, 0,1,0,1 //15
+		, 1,1,1,1, 0,5,1,1, 5,0,3,1 //16
 							];
 
 	shared.house.positionBuffer = gl.createBuffer();
@@ -117,13 +203,70 @@ function createHouse()
 	shared.house.triangleCount = positions.length / 3;
 }
 
-function createSquare()
-{
-	var positions = [-20,0,-20, -20,0,20, 20,0,-20 //1
-									, -20,0,20, 20,0,20, 20,0,-20 //2
+function createHouseTwo(){
+	var positions = [ 10,10,5 // 0
+		, -10,10,5 // 1
+		, -10,10,-5 // 2
+		, 10,10,-5 // 3
+		, 10,15,5 // 4
+		, -10,15,5 // 5
+		, -10,15,-5 // 6
+		, 10,15,-5 // 7
+		, -10,20,0 // 8
+		, 10,20,0 // 9
+];
+
+	var indexes = [ 2,3,1 // 1
+	, 1,3,0 // 2
+	, 1,0,4 // 3
+	, 1,4,5 // 4
+	, 3,2,6 // 5
+	, 3,6,7 // 6
+	, 3,7,0 // 7
+	, 0,7,4 // 8
+	, 1,6,2 // 9
+	, 1,5,6 // 10
+	, 7,6,9 // 11
+	, 6,8,9 // 12
+	, 5,4,9 // 13
+	, 5,9,8 // 14
+	, 6,5,8 // 15
+	, 4,7,9 // 16
+];
+
+	var colors = [1,0,0,1
+		, 0,0,1,1
+		, 0,1,0,1
+		, 1,0,1,1
+		, 1,1,1,1
+		, 0,1,1,1
+		, 1,1,0,1
+		, 0,5,1,1
+		, 0,1,0,1
+		, 5,0,3,1
+							];
+
+	shared.houseTwo.positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.houseTwo.positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+	shared.houseTwo.colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.houseTwo.colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+	shared.houseTwo.indexBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shared.houseTwo.indexBuffer);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexes), gl.STATIC_DRAW);
+
+	shared.houseTwo.indexCount = indexes.length;
+}
+
+function createSquare(){
+	var positions = [-10,0,-20, -10,0,20, 10,0,-20 //1
+									, -10,0,20, 10,0,20, 10,0,-20 //2
 									];
-	var colors = [0,0,1,1, 0,0,1,1, 0,0,1,1, //1
-		 						0,0,1,1, 0,0,1,1, 0,0,1,1 //2
+	var colors = [1,1,0,1, 1,1,0,1, 1,1,0,1, //1
+		 						1,1,0,1, 1,1,0,1, 1,1,0,1 //2
 
 							];
 
@@ -138,10 +281,7 @@ function createSquare()
 	shared.square.triangleCount = positions.length / 3;
 }
 
-
-
-function frameCallback(time)
-{
+function frameCallback(time){
 	var deltaTime = time - shared.previousTime;
 	if (!shared.paused) shared.time += deltaTime;
 	shared.previousTime = time;
@@ -158,6 +298,16 @@ function keydown(event)
 	if (event.key == " ")
 		shared.paused = !shared.paused;
 
+if (event.key == "o") {
+	if (shared.add == false) {
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+		shared.add = true;
+	}else {
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		shared.add = false;
+	}
+}
+
 	if (event.key == "c"){
       if(shared.cull == false){
           gl.enable(gl.CULL_FACE);
@@ -168,13 +318,14 @@ function keydown(event)
           shared.cull = false;
       }
   	}
+
 		if (event.key == "z") {
 			if(shared.depth == false){
           gl.enable(gl.DEPTH_TEST);
           shared.depth = true;
       }
       else{
-          gl.enable(gl.DEPTH_TEST);
+          gl.disable(gl.DEPTH_TEST);
           shared.depth = false;
       }
 
@@ -220,10 +371,68 @@ function drawScene(time)
 
 	setWorldViewProjection();
 	drawSquare();
+
+	mat4.identity(world);
+	mat4.translate(world, world, vec3.fromValues(15, 10, 0));
+	mat4.rotateZ(world, world, shared.time * 0.001);
+	mat4.translate(world, world, vec3.fromValues(0, -10, 0));
+
+
+	setWorldViewProjection();
 	drawHouse();
+
+	mat4.identity(world);
+	mat4.translate(world, world, vec3.fromValues(-15, 10, 0));
+	mat4.rotateZ(world, world, shared.time * 0.001);
+	mat4.translate(world, world, vec3.fromValues(0, -10, 0));
+
+	setWorldViewProjection();
+	drawHouseTwo();
+
+	gl.enable(gl.BLEND);
+	gl.disable(gl.CULL_FACE);
+
+	var x = vec3.fromValues(0,20,20);
+	var y = vec3.fromValues(0,20,-20);
+
+	var distance1 = vec3.distance(shared.cameraPosition, x);
+	var distance2 = vec3.distance(shared.cameraPosition, y);
+
+	if (distance1 > distance2) {
+		mat4.identity(world);
+		mat4.translate(world, world, vec3.fromValues(0, -20, 0));
+
+		setWorldViewProjection();
+		drawPlaneOne();
+
+		mat4.identity(world);
+		mat4.translate(world, world, vec3.fromValues(0, -20, 0));
+
+		setWorldViewProjection();
+		drawPlaneTwo();
+
+		if (shared.cull == true) {
+			gl.enable(gl.CULL_FACE);
+		}
+
+	}else if (distance2 > distance1) {
+		mat4.identity(world);
+		mat4.translate(world, world, vec3.fromValues(0, -20, 0));
+
+		setWorldViewProjection();
+		drawPlaneTwo();
+
+		mat4.identity(world);
+		mat4.translate(world, world, vec3.fromValues(0, -20, 0));
+
+		setWorldViewProjection();
+		drawPlaneOne();
+
+		if (shared.cull == true) {
+			gl.enable(gl.CULL_FACE);
+		}
+	}
 }
-
-
 
 function drawSquare()
 {
@@ -245,6 +454,42 @@ function drawHouse()
 	gl.vertexAttribPointer(shared.vertexColorLocation, 4, gl.FLOAT, gl.FALSE, 0, 0);
 
 	gl.drawArrays(gl.TRIANGLES, 0, shared.house.triangleCount);
+}
+
+function drawHouseTwo()
+{
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.houseTwo.positionBuffer);
+	gl.vertexAttribPointer(shared.vertexPositionLocation, 3, gl.FLOAT, gl.FALSE, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.houseTwo.colorBuffer);
+	gl.vertexAttribPointer(shared.vertexColorLocation, 4, gl.FLOAT, gl.FALSE, 0, 0);
+
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shared.houseTwo.indexBuffer);
+	gl.drawElements(gl.TRIANGLES, shared.houseTwo.indexCount, gl.UNSIGNED_SHORT, 0);
+}
+
+function drawPlaneOne()
+{
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.planeOne.positionBuffer);
+	gl.vertexAttribPointer(shared.vertexPositionLocation, 3, gl.FLOAT, gl.FALSE, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.planeOne.colorBuffer);
+	gl.vertexAttribPointer(shared.vertexColorLocation, 4, gl.FLOAT, gl.FALSE, 0, 0);
+
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shared.planeOne.indexBuffer);
+	gl.drawElements(gl.TRIANGLES, shared.planeOne.indexCount, gl.UNSIGNED_SHORT, 0);
+}
+
+function drawPlaneTwo()
+{
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.planeTwo.positionBuffer);
+	gl.vertexAttribPointer(shared.vertexPositionLocation, 3, gl.FLOAT, gl.FALSE, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, shared.planeTwo.colorBuffer);
+	gl.vertexAttribPointer(shared.vertexColorLocation, 4, gl.FLOAT, gl.FALSE, 0, 0);
+
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, shared.planeTwo.indexBuffer);
+	gl.drawElements(gl.TRIANGLES, shared.planeTwo.indexCount, gl.UNSIGNED_SHORT, 0);
 }
 
 
