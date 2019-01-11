@@ -24,7 +24,7 @@ var shared =
 	vertexPositionLocation: null,
 	vertexTextureCoordinateLocation: null,
 	vertexNormalLocation: null,
-	
+
 	time: 0,
 	previousTime: 0,
 	run: true,
@@ -43,8 +43,17 @@ var shared =
 	sunFlareTexture: null,
 
 	planetObject: null,
+	atmosphereObject: null,
+	moonObject: null,
+	discObject: null,
 
 	venusTexture: null,
+	earthTexture: null,
+	marsTexture: null,
+	jupiterTexture: null,
+	saturnTexture: null,
+	moonTexture: null,
+	atmosphereTexture: null,
 
 	paused: false
 };
@@ -99,14 +108,209 @@ function initializeScene()
 
 	shared.sunObject = twgl.primitives.createSphereBufferInfo(gl, 5, 32, 32);
 	shared.sunFlareObject = twgl.primitives.createPlaneBufferInfo(gl, 55, 55);
-	shared.sunTexture = loadTexture("chessboard.png");
+	shared.sunTexture = loadTexture("2k_sun.jpg");
 	shared.sunFlareTexture = loadTexture("lensflare.png");
 
 	shared.planetObject = twgl.primitives.createSphereBufferInfo(gl, 4, 32, 32);
+	shared.atmosphereObject = twgl.primitives.createSphereBufferInfo(gl, 4.2, 33, 33);
+	shared.moonObject = twgl.primitives.createSphereBufferInfo(gl, 1, 8, 8);
+	shared.discObject = twgl.primitives.createDiscBufferInfo(gl, 10, 20, 1, 5);
 
-	shared.venusTexture = loadTexture("chessboard.png");
+	shared.venusTexture = loadTexture("2k_venus_surface.jpg");
+	shared.earthTexture = loadTexture("2k_earth_daymap.jpg");
+	shared.marsTexture = loadTexture("2k_mars.jpg");
+	shared.jupiterTexture = loadTexture("2k_jupiter.jpg");
+	shared.saturnTexture = loadTexture("2k_saturn.jpg");
+	shared.moonTexture = loadTexture("2k_moon.jpg");
+	shared.atmosphereTexture = loadTexture("2k_earth_clouds.jpg");
 }
 
+function drawScene(time)
+{
+	shared.ambientColor = vec4.fromValues(0.3, 0.3, 0.3, 1);
+	shared.lightIntensity = 1;
+	shared.lightPosition = vec4.fromValues(0, 0, 0, 1);
+
+	var world = shared.worldMatrix;
+
+
+	mat4.identity(world);
+
+	// 0
+
+	// Venus
+	pushWorldMatrix(); // 1
+	//mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.translate(world, world, vec3.fromValues(20, 0, 0));
+	mat4.scale(world, world, vec3.fromValues(1.1,1.1,1.1));
+
+	mat4.rotateY(world, world, shared.time * 0.001);
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.venusTexture);
+	drawObject(shared.planetObject);
+
+	popWorldMatrix(); // 0
+
+
+	// Earth
+	pushWorldMatrix(); // 1
+	//mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.translate(world, world, vec3.fromValues(-20,0,0));
+	mat4.rotateY(world, world, shared.time * 0.001);
+
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.earthTexture);
+	drawObject(shared.planetObject);
+	gl.enable(gl.BLEND);
+
+	mat4.rotateY(world, world, shared.time * 0.001);
+
+	pushWorldMatrix(); // 2
+
+	// Earth atmosphere
+	gl.bindTexture(gl.TEXTURE_2D, shared.atmosphereTexture);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+	drawObject(shared.atmosphereObject);
+	gl.disable(gl.BLEND);
+
+	//mat4.rotateY(world, world, shared.time * -0.001);
+
+	// Earth Moon
+	pushWorldMatrix(); // 3
+
+	mat4.translate(world, world, vec3.fromValues(-7,0,0));
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+	drawObject(shared.moonObject);
+
+
+	popWorldMatrix(); // 2
+	popWorldMatrix(); // 1
+	popWorldMatrix(); // 0
+
+	// Mars
+	pushWorldMatrix(); // 1
+	//mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.translate(world, world, vec3.fromValues(40,0,0));
+	mat4.scale(world, world, vec3.fromValues(0.6,0.6,0.6));
+	mat4.rotateY(world, world, shared.time * 0.001);
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.marsTexture);
+	drawObject(shared.planetObject);
+	mat4.rotateY(world, world, shared.time * 0.001);
+
+
+	// Mars moon1
+	pushWorldMatrix(); // 2
+
+	mat4.translate(world, world, vec3.fromValues(6,0,0));
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+	drawObject(shared.moonObject);
+
+popWorldMatrix(); // 1
+
+mat4.rotateY(world, world, shared.time * -0.006);
+
+// Mars moon2
+	pushWorldMatrix(); // 2
+	mat4.translate(world, world, vec3.fromValues(-10,0,0));
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+	drawObject(shared.moonObject);
+
+	popWorldMatrix(); // 1
+	popWorldMatrix(); // 0
+
+	// Jupiter
+	pushWorldMatrix(); // 1
+	//mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.translate(world, world, vec3.fromValues(-50,0,0));
+	mat4.scale(world, world, vec3.fromValues(1.6,1.6,1.6));
+	mat4.rotateY(world, world, shared.time * 0.001);
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.jupiterTexture);
+	drawObject(shared.planetObject);
+	mat4.rotateY(world, world, shared.time * -0.001);
+
+	mat4.rotateY(world, world, shared.time * 0.001);
+
+	// Jupiters moon1
+	pushWorldMatrix(); // 2
+
+	mat4.translate(world, world, vec3.fromValues(6,0,0));
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+	drawObject(shared.moonObject);
+
+	popWorldMatrix(); // 1
+	mat4.rotateY(world, world, shared.time * -0.001);
+
+	mat4.rotateX(world, world, shared.time * 0.001);
+
+	// Jupiter moon2
+	pushWorldMatrix(); // 2
+
+	mat4.translate(world, world, vec3.fromValues(-6,7,0));
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+	drawObject(shared.moonObject);
+
+	popWorldMatrix(); // 1
+	mat4.rotateX(world, world, shared.time * -0.001);
+
+	mat4.rotateZ(world, world, shared.time * 0.001);
+
+	// Jupiter moon3
+	pushWorldMatrix(); // 2
+	mat4.translate(world, world, vec3.fromValues(6,-7,0));
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+	drawObject(shared.moonObject);
+
+	popWorldMatrix(); // 1
+	mat4.rotateZ(world, world, shared.time * -0.001);
+
+	popWorldMatrix(); // 0
+
+	// Saturn
+	pushWorldMatrix(); // 1
+	//mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.translate(world, world, vec3.fromValues(60,0,0));
+	mat4.rotateX(world, world, 0.3);
+	mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.scale(world, world, vec3.fromValues(1.4,1.5,1.4));
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.saturnTexture);
+	drawObject(shared.planetObject);
+
+	// Saturn ring
+	pushWorldMatrix(); // 2
+
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+	drawObject(shared.discObject);
+
+	mat4.rotateX(world, world, 3,14159);
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+	drawObject(shared.discObject);
+
+	popWorldMatrix(); // 1
+	popWorldMatrix(); // 0
+
+	drawSun();
+}
 
 
 function frameCallback(time)
@@ -126,14 +330,14 @@ function keydown(event)
 {
 	switch (event.key)
 	{
-		case "p":
+		case " ":
 			shared.paused = !shared.paused;
 			break;
 		case "ArrowUp":
-			shared.cameraDistanceDelta = -1;
+			shared.cameraDistanceDelta = -5;
 			break;
 		case "ArrowDown":
-			shared.cameraDistanceDelta = 1;
+			shared.cameraDistanceDelta = 5;
 			break;
 	}
 }
@@ -199,7 +403,7 @@ function popWorldMatrix()
 {
 	if (shared.worldMatrixStack.length == 0)
 	{
-		console.log("worldMatrixStack: Can't pop matrix from empty stack"); 
+		console.log("worldMatrixStack: Can't pop matrix from empty stack");
 	}
 
 	mat4.copy(shared.worldMatrix, shared.worldMatrixStack.pop());
@@ -243,37 +447,9 @@ function frame(time, deltaTime)
 
 	if (shared.worldMatrixStack.length > 0)
 	{
-		console.log("worldMatrixStack: Push and pop misalignment"); 
+		console.log("worldMatrixStack: Push and pop misalignment");
 		shared.run = false;
 	}
-}
-
-
-
-function drawScene(time)
-{
-	shared.ambientColor = vec4.fromValues(0.3, 0.3, 0.3, 1);
-	shared.lightIntensity = 1;
-	shared.lightPosition = vec4.fromValues(0, 0, 0, 1);
-
-	var world = shared.worldMatrix;
-
-
-	mat4.identity(world);
-
-
-	pushWorldMatrix();
-
-	mat4.translate(world, world, vec3.fromValues(25, 0, 0));
-
-	setTransformationAndLighting(true);
-	gl.bindTexture(gl.TEXTURE_2D, shared.venusTexture);
-	drawObject(shared.planetObject);
-
-	popWorldMatrix();
-
-
-	drawSun();
 }
 
 
@@ -317,7 +493,7 @@ var vertexShader =
 		v_diffuse = 0.0;
 		if (u_lightingEnabled)
 		{
-			vec3 lightDirection = normalize(u_lightPosition.xyz - a_position.xyz); 
+			vec3 lightDirection = normalize(u_lightPosition.xyz - a_position.xyz);
 			v_diffuse = max(dot(a_normal, lightDirection), 0.0) * u_lightIntensity;
 		}
 		v_textureCoordinate = a_textureCoordinate;
