@@ -39,6 +39,7 @@ function createCamera(positionX, positionY, positionZ)
 
 function translateCameraX(camera, amount, viewRelative)
 {
+
 	if (viewRelative)
 	{
 		vec3.scaleAndAdd(camera.position, camera.position, camera.right, -amount);

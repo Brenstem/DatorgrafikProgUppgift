@@ -11,7 +11,7 @@ var shared =
 	worldViewProjectionMatrix: mat4.create(),
 	worldInverseMatrix: mat4.create(),
 	billboardMatrix: mat4.create(),
-	lightIntensity: 1,
+	lightIntensity: 0,
 	ambientColor: vec4.create(),
 	lightPosition: vec4.create(),
 	lightPositionObject: vec4.create(),
@@ -55,6 +55,11 @@ var shared =
 	moonTexture: null,
 	atmosphereTexture: null,
 
+	intensityRange: null,
+	sliderAmbienceRed: null,
+	sliderAmbienceGreen: null,
+	sliderAmbienceBlue: null,
+
 	paused: false
 };
 
@@ -64,6 +69,11 @@ function main(context)
 {
 	gl = context;
 
+
+	shared.intensityRange = document.getElementById("rangeIntensity");
+	shared.sliderAmbienceRed = document.getElementById("rangeAmbienceRed");
+	shared.sliderAmbienceBlue = document.getElementById("rangeAmbienceBlue");
+	shared.sliderAmbienceGreen = document.getElementById("rangeAmbienceGreen");
 
 	window.addEventListener("keydown", keydown);
 	window.addEventListener("keyup", keyup);
@@ -100,8 +110,6 @@ function main(context)
 	window.requestAnimationFrame(frameCallback);
 }
 
-
-
 function initializeScene()
 {
 	shared.cameraDistance = 80;
@@ -125,22 +133,41 @@ function initializeScene()
 	shared.atmosphereTexture = loadTexture("2k_earth_clouds.jpg");
 }
 
+function lightIntensityChange()
+{
+		shared.lightIntensity = shared.intensityRange.value;
+}
+
+function AmbienceRedChange ()
+{
+    shared.ambienceRed = shared.sliderAmbienceRed.value;
+}
+
+function AmbienceGreenChange ()
+{
+    shared.ambienceGreen = shared.sliderAmbienceGreen.value;
+}
+
+function AmbienceBlueChange ()
+{
+    shared.ambienceBlue = shared.sliderAmbienceBlue.value;
+}
+
 function drawScene(time)
 {
-	shared.ambientColor = vec4.fromValues(0.3, 0.3, 0.3, 1);
 	shared.lightIntensity = 1;
+	//shared.ambientColor = vec4.fromValues(shared.ambienceRed, shared.ambienceGreen, shared.ambienceBlue, 1);
+	shared.ambientColor = vec4.fromValues(0.2, 0.2, 0.2, 1);
 	shared.lightPosition = vec4.fromValues(0, 0, 0, 1);
 
 	var world = shared.worldMatrix;
 
-
 	mat4.identity(world);
 
 	// 0
-
 	// Venus
 	pushWorldMatrix(); // 1
-	//mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.rotateY(world, world, shared.time * 0.001);
 	mat4.translate(world, world, vec3.fromValues(20, 0, 0));
 	mat4.scale(world, world, vec3.fromValues(1.1,1.1,1.1));
 
@@ -151,33 +178,31 @@ function drawScene(time)
 
 	popWorldMatrix(); // 0
 
-
 	// Earth
 	pushWorldMatrix(); // 1
-	//mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.rotateY(world, world, shared.time * 0.001);
 	mat4.translate(world, world, vec3.fromValues(-20,0,0));
 	mat4.rotateY(world, world, shared.time * 0.001);
-
 
 	setTransformationAndLighting(true);
 	gl.bindTexture(gl.TEXTURE_2D, shared.earthTexture);
 	drawObject(shared.planetObject);
+
+	mat4.rotateY(world, world, shared.time * -0.002);
+
 	gl.enable(gl.BLEND);
-
-	mat4.rotateY(world, world, shared.time * 0.001);
-
-	pushWorldMatrix(); // 2
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
 	// Earth atmosphere
+
+	setTransformationAndLighting(true);
 	gl.bindTexture(gl.TEXTURE_2D, shared.atmosphereTexture);
-	gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 	drawObject(shared.atmosphereObject);
+
 	gl.disable(gl.BLEND);
 
-	//mat4.rotateY(world, world, shared.time * -0.001);
-
 	// Earth Moon
-	pushWorldMatrix(); // 3
+	pushWorldMatrix(); // 2
 
 	mat4.translate(world, world, vec3.fromValues(-7,0,0));
 
@@ -185,14 +210,12 @@ function drawScene(time)
 	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
 	drawObject(shared.moonObject);
 
-
-	popWorldMatrix(); // 2
 	popWorldMatrix(); // 1
 	popWorldMatrix(); // 0
 
 	// Mars
 	pushWorldMatrix(); // 1
-	//mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.rotateY(world, world, shared.time * 0.001);
 	mat4.translate(world, world, vec3.fromValues(40,0,0));
 	mat4.scale(world, world, vec3.fromValues(0.6,0.6,0.6));
 	mat4.rotateY(world, world, shared.time * 0.001);
@@ -212,11 +235,11 @@ function drawScene(time)
 	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
 	drawObject(shared.moonObject);
 
-popWorldMatrix(); // 1
+	popWorldMatrix(); // 1
 
-mat4.rotateY(world, world, shared.time * -0.006);
+	mat4.rotateY(world, world, shared.time * -0.006);
 
-// Mars moon2
+	// Mars moon2
 	pushWorldMatrix(); // 2
 	mat4.translate(world, world, vec3.fromValues(-10,0,0));
 
@@ -229,7 +252,7 @@ mat4.rotateY(world, world, shared.time * -0.006);
 
 	// Jupiter
 	pushWorldMatrix(); // 1
-	//mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.rotateY(world, world, shared.time * 0.001);
 	mat4.translate(world, world, vec3.fromValues(-50,0,0));
 	mat4.scale(world, world, vec3.fromValues(1.6,1.6,1.6));
 	mat4.rotateY(world, world, shared.time * 0.001);
@@ -239,11 +262,21 @@ mat4.rotateY(world, world, shared.time * -0.006);
 	drawObject(shared.planetObject);
 	mat4.rotateY(world, world, shared.time * -0.001);
 
-	mat4.rotateY(world, world, shared.time * 0.001);
 
-	// Jupiters moon1
+	// Jupiters moon1 X
 	pushWorldMatrix(); // 2
+	mat4.rotateX(world, world, shared.time * 0.001);
+	mat4.translate(world, world, vec3.fromValues(0,6,0));
 
+	setTransformationAndLighting(true);
+	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
+	drawObject(shared.moonObject);
+
+	popWorldMatrix(); // 1
+
+	// Jupiter moon2 Y
+	pushWorldMatrix(); // 2
+	mat4.rotateY(world, world, shared.time * 0.001);
 	mat4.translate(world, world, vec3.fromValues(6,0,0));
 
 	setTransformationAndLighting(true);
@@ -251,40 +284,22 @@ mat4.rotateY(world, world, shared.time * -0.006);
 	drawObject(shared.moonObject);
 
 	popWorldMatrix(); // 1
-	mat4.rotateY(world, world, shared.time * -0.001);
-
-	mat4.rotateX(world, world, shared.time * 0.001);
-
-	// Jupiter moon2
-	pushWorldMatrix(); // 2
-
-	mat4.translate(world, world, vec3.fromValues(-6,7,0));
-
-	setTransformationAndLighting(true);
-	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
-	drawObject(shared.moonObject);
-
-	popWorldMatrix(); // 1
-	mat4.rotateX(world, world, shared.time * -0.001);
-
-	mat4.rotateZ(world, world, shared.time * 0.001);
 
 	// Jupiter moon3
 	pushWorldMatrix(); // 2
-	mat4.translate(world, world, vec3.fromValues(6,-7,0));
+	mat4.rotateZ(world, world, shared.time * 0.001);
+	mat4.translate(world, world, vec3.fromValues(0,9,0));
 
 	setTransformationAndLighting(true);
 	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
 	drawObject(shared.moonObject);
 
 	popWorldMatrix(); // 1
-	mat4.rotateZ(world, world, shared.time * -0.001);
-
 	popWorldMatrix(); // 0
 
 	// Saturn
 	pushWorldMatrix(); // 1
-	//mat4.rotateY(world, world, shared.time * 0.001);
+	mat4.rotateY(world, world, shared.time * 0.001);
 	mat4.translate(world, world, vec3.fromValues(60,0,0));
 	mat4.rotateX(world, world, 0.3);
 	mat4.rotateY(world, world, shared.time * 0.001);
@@ -294,17 +309,26 @@ mat4.rotateY(world, world, shared.time * -0.006);
 	gl.bindTexture(gl.TEXTURE_2D, shared.saturnTexture);
 	drawObject(shared.planetObject);
 
+	mat4.rotateY(world, world, shared.time * -0.001);
 	// Saturn ring
 	pushWorldMatrix(); // 2
+	mat4.rotateY(world, world, shared.time * -0.001);
+
 
 	setTransformationAndLighting(true);
 	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
 	drawObject(shared.discObject);
+	mat4.rotateY(world, world, shared.time * -0.001);
 
 	mat4.rotateX(world, world, 3,14159);
+
+	mat4.rotateY(world, world, shared.time * 0.001);
+
 	setTransformationAndLighting(true);
 	gl.bindTexture(gl.TEXTURE_2D, shared.moonTexture);
 	drawObject(shared.discObject);
+
+	mat4.rotateY(world, world, shared.time * 0.001);
 
 	popWorldMatrix(); // 1
 	popWorldMatrix(); // 0

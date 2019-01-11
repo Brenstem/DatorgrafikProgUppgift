@@ -22,6 +22,22 @@ function start()
 
 <body onload="start()">
 <canvas id="canvas" width="800" height="500"></canvas>
+<p>
+	Light Intensity:
+	<input id ="rangeIntensity" oninput="lightIntensityChange()" type="range" min="0" max="3" value="1" step="0.05"></input>
+</p>
+<p>
+    Ambience Red:
+    <input type="range" min="0" max="1" step="0.05" value="0.5" id="rangeAmbienceRed" oninput="AmbienceRedChange()">
+</p>
+<p>
+    Ambience Green:
+    <input type="range" min="0" max="1" step="0.05" value="0.5" id="rangeAmbienceGreen" oninput="AmbienceGreenChange()">
+</p>
+<p>
+    Ambience Blue:
+    <input type="range" min="0" max="1" step="0.05" value="0.5" id="rangeAmbienceBlue" oninput="AmbienceBlueChange()">
+</p>
 </body>
 
 </html>

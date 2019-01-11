@@ -24,7 +24,7 @@ var shared =
 	vertexPositionLocation: null,
 	vertexTextureCoordinateLocation: null,
 	vertexNormalLocation: null,
-	
+
 	time: 0,
 	previousTime: 0,
 	run: true,
@@ -32,6 +32,18 @@ var shared =
 	worldMatrixStack: [],
 
 	camera: null,
+	cameraTwo: null,
+	cameraThree: null,
+	cameraFour: null,
+	cameraDeltaX: null,
+	cameraDeltaZ: null,
+	cameraView: true,
+
+	cameraRotationX: 0,
+	cameraRotationY: 0,
+	cameraRotationZ: 0,
+	discoMode: false,
+	discoBall: false,
 
 	planeObject: null,
 	coneObject: null,
@@ -90,6 +102,12 @@ function main(context)
 function initializeScene()
 {
 	shared.camera = createCamera(0, 0, -85);
+	shared.cameraTwo = createCamera(0, 0, -105);
+	shared.cameraThree = createCamera(50, 0, -85);
+	shared.cameraFour = createCamera(0, 90, 0);
+
+	rotateCameraY(shared.cameraThree, Math.PI / 4.0000001);
+	rotateCameraX(shared.cameraFour, -Math.PI / 2.000001);
 
 	shared.planeObject = twgl.primitives.createPlaneBufferInfo(gl, 90, 90, 16, 16);
 	shared.coneObject = twgl.primitives.createTruncatedConeBufferInfo(gl, 8, 2, 40, 32, 32);
@@ -118,8 +136,33 @@ function keydown(event)
 {
 	switch (event.key)
 	{
-		case "p":
+		case " ":
 			shared.paused = !shared.paused;
+			break;
+		case "W":
+		case "w":
+			shared.cameraDeltaZ = 2;
+			break;
+		case "S":
+		case "s":
+			shared.cameraDeltaZ = -2;
+			break;
+		case "D":
+		case "d":
+			shared.cameraDeltaX = -2;
+			break;
+		case "A":
+		case "a":
+			shared.cameraDeltaX = 2;
+			break;
+		case "Shift":
+			shared.cameraView = !shared.cameraView;
+			break;
+		case "l":
+			shared.discoMode = !shared.discoMode;
+			break;
+		case "b":
+			shared.discoBall = !shared.discoBall;
 			break;
 	}
 }
@@ -130,6 +173,18 @@ function keyup(event)
 {
 	switch (event.key)
 	{
+		case "W":
+		case "w":
+		case "S":
+		case "s":
+			shared.cameraDeltaZ = 0;
+			break;
+		case "D":
+		case "d":
+		case "A":
+		case "a":
+			shared.cameraDeltaX = 0;
+		break;
 	}
 }
 
@@ -137,6 +192,19 @@ function keyup(event)
 
 function mousemove(event)
 {
+	if (event.buttons == 1)
+	{
+		shared.cameraRotationX = event.movementY * 0.005;
+		shared.cameraRotationY = event.movementX * 0.005;
+
+		rotateCameraX(shared.camera, shared.cameraRotationX);
+		rotateCameraY(shared.camera, shared.cameraRotationY);
+	}
+	if (event.buttons == 2)
+	{
+		shared.cameraRotationZ = event.movementX * 0.005;
+		rotateCameraZ(shared.camera, shared.cameraRotationZ);
+	}
 }
 
 
@@ -172,7 +240,7 @@ function popWorldMatrix()
 {
 	if (shared.worldMatrixStack.length == 0)
 	{
-		console.log("worldMatrixStack: Can't pop matrix from empty stack"); 
+		console.log("worldMatrixStack: Can't pop matrix from empty stack");
 	}
 
 	mat4.copy(shared.worldMatrix, shared.worldMatrixStack.pop());
@@ -205,15 +273,62 @@ function frame(time, deltaTime)
 	gl.enable(gl.CULL_FACE);
 	gl.enable(gl.DEPTH_TEST);
 
-	updateCamera(shared.camera);
-	mat4.copy(shared.viewMatrix, shared.camera.matrix);
-	mat4.multiply(shared.viewProjectionMatrix, shared.projectionMatrix, shared.viewMatrix);
+	if (shared.discoMode)
+	{
+		gl.viewport(0, 0, 400, 250);
 
-	drawScene(time);
+		updateCamera(shared.camera);
+		mat4.copy(shared.viewMatrix, shared.camera.matrix);
+		mat4.multiply(shared.viewProjectionMatrix, shared.projectionMatrix, shared.viewMatrix);
+
+		translateCameraX(shared.camera, shared.cameraDeltaX, shared.cameraView);
+		translateCameraZ(shared.camera, shared.cameraDeltaZ, shared.cameraView);
+
+		drawScene(time);
+
+		gl.viewport(0, 250, 400, 250);
+
+		updateCamera(shared.cameraTwo);
+		mat4.copy(shared.viewMatrix, shared.cameraTwo.matrix);
+		mat4.multiply(shared.viewProjectionMatrix, shared.projectionMatrix, shared.viewMatrix);
+
+		drawScene(time);
+
+		gl.viewport(400, 250, 400, 250);
+
+		updateCamera(shared.cameraThree);
+		mat4.copy(shared.viewMatrix, shared.cameraThree.matrix);
+		mat4.multiply(shared.viewProjectionMatrix, shared.projectionMatrix, shared.viewMatrix);
+
+		drawScene(time);
+
+		gl.viewport(400, 0, 400, 250);
+
+		updateCamera(shared.cameraFour);
+		mat4.copy(shared.viewMatrix, shared.cameraFour.matrix);
+		mat4.multiply(shared.viewProjectionMatrix, shared.projectionMatrix, shared.viewMatrix);
+
+		drawScene(time);
+
+	}
+	else
+	{
+		gl.viewport(0, 0, 800, 500);
+
+		updateCamera(shared.camera);
+		mat4.copy(shared.viewMatrix, shared.camera.matrix);
+		mat4.multiply(shared.viewProjectionMatrix, shared.projectionMatrix, shared.viewMatrix);
+
+		translateCameraX(shared.camera, shared.cameraDeltaX, shared.cameraView);
+		translateCameraZ(shared.camera, shared.cameraDeltaZ, shared.cameraView);
+
+		drawScene(time);
+	}
+
 
 	if (shared.worldMatrixStack.length > 0)
 	{
-		console.log("worldMatrixStack: Push and pop misalignment"); 
+		console.log("worldMatrixStack: Push and pop misalignment");
 		shared.run = false;
 	}
 }
@@ -224,10 +339,16 @@ function drawScene(time)
 {
 	shared.ambientColor = vec4.fromValues(0.5, 0.5, 0.5, 1);
 	shared.lightIntensity = 0.9;
-	shared.lightPosition = vec4.fromValues(0, 5, 0, 1);
 
 	var world = shared.worldMatrix;
 
+	if (!shared.discoBall)
+	{
+		shared.lightPosition = vec4.fromValues(0, 5, 0, 1);
+	}else if (shared.discoBall)
+	{
+		shared.lightPosition = vec4.fromValues(shared.camera.position[0], shared.camera.position[1], shared.camera.position[2], 1)
+	}
 
 	mat4.identity(world);
 
@@ -245,13 +366,37 @@ function drawScene(time)
 
 	drawCones(35);
 
+	if (!shared.discoBall) {
+		pushWorldMatrix();
+
+		mat4.translate(world, world, vec3.fromValues(0, 5, 0));
+
+		setTransformationAndLighting(false);
+		gl.bindTexture(gl.TEXTURE_2D, shared.whiteTexture);
+		drawObject(shared.sphereObject);
+
+		popWorldMatrix();
+	}
+
 
 	pushWorldMatrix();
 
-	mat4.translate(world, world, vec3.fromValues(0, 5, 0));
+	mat4.translate(world, world, vec3.fromValues(15, 10, 3));
+	mat4.scale(world, world, vec3.fromValues(3, 3, 3));
 
 	setTransformationAndLighting(false);
-	gl.bindTexture(gl.TEXTURE_2D, shared.whiteTexture);
+	gl.bindTexture(gl.TEXTURE_2D, shared.chessboardTexture);
+	drawObject(shared.sphereObject);
+
+	popWorldMatrix();
+
+	pushWorldMatrix();
+
+	mat4.translate(world, world, shared.camera.position);
+	mat4.scale(world, world, vec3.fromValues(3, 3, 3));
+
+	setTransformationAndLighting(false);
+	gl.bindTexture(gl.TEXTURE_2D, shared.chessboardTexture);
 	drawObject(shared.sphereObject);
 
 	popWorldMatrix();
@@ -309,7 +454,7 @@ var vertexShader =
 		v_diffuse = 0.0;
 		if (u_lightingEnabled)
 		{
-			vec3 lightDirection = normalize(u_lightPosition.xyz - a_position.xyz); 
+			vec3 lightDirection = normalize(u_lightPosition.xyz - a_position.xyz);
 			v_diffuse = max(dot(a_normal, lightDirection), 0.0) * u_lightIntensity;
 		}
 		v_textureCoordinate = a_textureCoordinate;
